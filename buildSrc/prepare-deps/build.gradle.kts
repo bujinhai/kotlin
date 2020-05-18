@@ -287,10 +287,15 @@ fun buildIvyRepositoryTaskAndRegisterCleanupTask(
         }
 
         doFirst {
-            configuration.resolvedConfiguration.resolvedArtifacts.single().run {
-                val moduleDirectory = moduleDirectory()
-                val artifactsDirectory = File(moduleDirectory(), "artifacts")
+            val artifact = configuration.resolvedConfiguration.resolvedArtifacts.single()
+            val moduleDirectory = artifact.moduleDirectory()
+            if (moduleDirectory.exists()) {
+                logger.info("Path ${moduleDirectory.absolutePath} already exists, skipping unpacking.")
+                return@doFirst
+            }
 
+            with(artifact) {
+                val artifactsDirectory = File(moduleDirectory, "artifacts")
                 logger.info("Unpacking ${file.name} into ${artifactsDirectory.absolutePath}")
                 copy {
                     val fileTree = when (extension) {
